@@ -150,6 +150,7 @@ class Contact(models.Model):
     )
     city = models.CharField(max_length=50, verbose_name='Город')
     street = models.CharField(max_length=100, verbose_name='Улица')
+    address = models.CharField(max_length=200, verbose_name='Адрес', blank=True, default='')
     phone = models.CharField(max_length=20, verbose_name='Телефон')
 
     class Meta:

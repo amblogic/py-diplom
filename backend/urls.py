@@ -1,28 +1,18 @@
-from django.urls import path
+from rest_framework.routers import DefaultRouter
 
 from .views import (
-    RegisterView, LoginView, LogoutView,
-    ContactView, ContactDetailView,
-    ShopView, CategoryView, ProductInfoView,
-    BasketView, OrderView, OrderDetailView, OrderConfirmView, OrderCancelView,
+    UserViewSet, ContactViewSet, ShopViewSet, CategoryViewSet,
+    ProductViewSet, ParameterViewSet, ProductInfoViewSet, OrderViewSet,
 )
 
-urlpatterns = [
-    path('register', RegisterView.as_view()),
-    path('login', LoginView.as_view()),
-    path('logout', LogoutView.as_view()),
+router = DefaultRouter()
+router.register('users', UserViewSet, basename='users')
+router.register('contacts', ContactViewSet, basename='contacts')
+router.register('shops', ShopViewSet)
+router.register('categories', CategoryViewSet)
+router.register('products', ProductViewSet)
+router.register('parameters', ParameterViewSet)
+router.register('product-info', ProductInfoViewSet, basename='product-info')
+router.register('orders', OrderViewSet, basename='orders')
 
-    path('contacts', ContactView.as_view()),
-    path('contacts/<int:pk>', ContactDetailView.as_view()),
-
-    path('shops', ShopView.as_view()),
-    path('categories', CategoryView.as_view()),
-    path('products', ProductInfoView.as_view()),
-
-    path('basket', BasketView.as_view()),
-
-    path('orders', OrderView.as_view()),
-    path('orders/confirm', OrderConfirmView.as_view()),
-    path('orders/<int:pk>', OrderDetailView.as_view()),
-    path('orders/<int:pk>/cancel', OrderCancelView.as_view()),
-]
+urlpatterns = router.urls

@@ -89,5 +89,5 @@ class OrderItemAdmin(admin.ModelAdmin):
 
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'city', 'street', 'phone')
-    search_fields = ('user__email', 'phone', 'city')
+    list_display = ('id', 'user', 'city', 'street','address', 'phone')
+    search_fields = ('user__email', 'phone','address' ,'city')

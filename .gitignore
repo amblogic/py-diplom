@@ -10,6 +10,7 @@ venv.bak/
 
 __*__
 __pycache__
+backend/__pycache__
 
 # Distribution / packaging
 .Python

@@ -3,6 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from django.http import JsonResponse
+import yaml
+from urllib.request import urlopen
+
+from rest_framework.decorators import api_view, permission_classes
 
 from .models import (
     Shop, Category, Product, ProductInfo, Parameter,
@@ -144,3 +149,72 @@ class OrderViewSet(viewsets.ModelViewSet):
         order.status = 'new'
         order.save()
         return Response(self.get_serializer(order).data)
+    
+def ping(request):
+    return JsonResponse({'status': 'ok', 'message': 'Сервер работает'})
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def partner_update(request):
+    # 1. Проверяем, что это магазин
+    if request.user.type != 'shop':
+        return Response(
+            {'Status': False, 'Error': 'Только для магазинов'},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # 2. Берём url из запроса
+    url = request.data.get('url')
+    if not url:
+        return Response(
+            {'Status': False, 'Error': 'Не передан url'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # 3. Скачиваем и парсим YAML
+    stream = urlopen(url).read()
+    data = yaml.safe_load(stream)
+
+    # 4. Создаём магазин
+    shop, _ = Shop.objects.get_or_create(name=data['shop'])
+
+    # 5. Категории
+    for cat in data['categories']:
+        category, _ = Category.objects.get_or_create(
+            id=cat['id'],
+            defaults={'name': cat['name']},
+        )
+        category.shops.add(shop)
+
+    # 6. Удаляем старый прайс этого магазина
+    ProductInfo.objects.filter(shop=shop).delete()
+
+    # 7. Товары
+    for item in data['goods']:
+        product, _ = Product.objects.get_or_create(
+            name=item['name'],
+            category_id=item['category'],
+        )
+        product_info = ProductInfo.objects.create(
+            product=product,
+            shop=shop,
+            external_id=item['id'],
+            model=item['model'],
+            name=item['name'],
+            price=item['price'],
+            price_rrc=item['price_rrc'],
+            quantity=item['quantity'],
+        )
+
+        # 8. Параметры
+        for name, value in item.get('parameters', {}).items():
+            parameter, _ = Parameter.objects.get_or_create(name=name)
+            ProductParameter.objects.create(
+                product_info=product_info,
+                parameter=parameter,
+                value=str(value),
+            )
+
+    return Response({'Status': True})

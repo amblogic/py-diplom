@@ -15,6 +15,11 @@ STATE_CHOICES = (
     ('canceled', 'Отменен'),
 )
 
+TYPE_CHOICES = (
+    ('shop', 'Магазин'),
+    ('buyer', 'Покупатель'),
+)
+
 class UserManager(BaseUserManager):
     """Миксин для управления пользователями"""
     use_in_migrations = True
@@ -60,6 +65,7 @@ class User(AbstractUser):
             'unique': _("A user with that username already exists."),
         },
     )
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='buyer')
     
   
 class Shop(models.Model):
@@ -92,7 +98,10 @@ class Product(models.Model):
     """Базовый товар, который относится к определенной категории."""
     category = models.ForeignKey(Category, verbose_name='Категория', on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=80, verbose_name='Наименование')
-
+    external_id = models.PositiveIntegerField(verbose_name='ID товара у поставщика', null=True, blank=True)
+    model = models.CharField(max_length=80, verbose_name='Модель', blank=True)
+    description = models.TextField(verbose_name='Описание', blank=True)
+    
     class Meta:
         verbose_name = 'Продукт'
         verbose_name_plural = 'Список продуктов'

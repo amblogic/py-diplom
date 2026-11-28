@@ -9,6 +9,9 @@ from .models import (
 User = get_user_model()
 
 
+class PartnerUpdateSerializer(serializers.Serializer):
+    url = serializers.URLField()
+
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact

@@ -61,19 +61,7 @@ class User(AbstractUser):
         },
     )
     
-class Contact(models.Model):
-    """Контактная информация о пользователе."""
-    user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE, related_name='contacts')
-    type = models.CharField(max_length=50, verbose_name='Тип контакта')  # например, 'phone' или 'address'
-    value = models.CharField(max_length=255, verbose_name='Значение')
-
-    class Meta:
-        verbose_name = 'Контакт'
-        verbose_name_plural = 'Список контактов'
-
-    def __str__(self):
-        return f'{self.user.email} - {self.type}: {self.value}'
-    
+  
 class Shop(models.Model):
     """магазин, который может быть связан с несколькими категориями товаров."""
     name = models.CharField(max_length=50, verbose_name='Название')
@@ -154,8 +142,25 @@ class ProductParameter(models.Model):
     def __str__(self):
         return f'{self.product_info} - {self.parameter.name}: {self.value}'
     
+class Contact(models.Model):
+    """Контактная информация о пользователе."""
+    user = models.ForeignKey(
+        User, verbose_name='Пользователь',
+        on_delete=models.CASCADE, related_name='contacts',
+    )
+    city = models.CharField(max_length=50, verbose_name='Город')
+    street = models.CharField(max_length=100, verbose_name='Улица')
+    phone = models.CharField(max_length=20, verbose_name='Телефон')
+
+    class Meta:
+        verbose_name = 'Контакт'
+        verbose_name_plural = 'Список контактов'
+
+    def __str__(self):
+        return f'{self.city}, {self.street}, {self.phone}'
+
 class Order(models.Model):
-    """Основная модель заказа"""
+    """Модель заказа"""
     user = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE, related_name='orders')
     dt = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     status = models.CharField(max_length=20, choices=STATE_CHOICES, verbose_name='Статус')
@@ -168,12 +173,16 @@ class Order(models.Model):
     def __str__(self):
         return f'Заказ №{self.id} от {self.user.email}'
 
-
 class OrderItem(models.Model):
     """Позиция в заказе"""
-    order = models.ForeignKey(Order, verbose_name='Заказ', on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, verbose_name='Продукт', on_delete=models.CASCADE, related_name='order_items')
-    shop = models.ForeignKey(Shop, verbose_name='Магазин', on_delete=models.CASCADE, related_name='order_items')
+    order = models.ForeignKey(
+        Order, verbose_name='Заказ',
+        on_delete=models.CASCADE, related_name='items',
+    )
+    product_info = models.ForeignKey(
+        ProductInfo, verbose_name='Информация о продукте',
+        on_delete=models.CASCADE, related_name='order_items',
+    )
     quantity = models.PositiveIntegerField(verbose_name='Количество')
 
     class Meta:
@@ -181,4 +190,4 @@ class OrderItem(models.Model):
         verbose_name_plural = 'Позиции заказов'
 
     def __str__(self):
-        return f'{self.product.name} x {self.quantity} (Заказ №{self.order.id})'
+        return f'{self.product_info.product.name} x {self.quantity}'

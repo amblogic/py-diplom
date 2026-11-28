@@ -55,6 +55,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'order_products.urls'
+AUTH_USER_MODEL = 'backend.User'
+
 
 TEMPLATES = [
     {
